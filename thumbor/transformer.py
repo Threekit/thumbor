@@ -21,6 +21,8 @@ except ImportError:
     logger.warning("Error importing bounding_box filter, trimming won't work")
     TRIM_ENABLED = False
 
+def closestPowerOf2(x):
+    return math.pow(2.0, round(math.log2(x)))
 
 class Transformer:
     def __init__(self, context):
@@ -74,29 +76,39 @@ class Transformer:
         source_width = float(source_width)
         source_height = float(source_height)
 
-        if not self.context.request.width and not self.context.request.height:
-            self.target_width = source_width
-            self.target_height = source_height
+        reqWidth = self.context.request.width
+        reqHeight = self.context.request.height
+        if not reqWidth and not reqHeight:
+            if self.context.request.power2:
+                self.target_width = closestPowerOf2(source_width)
+                self.target_height = closestPowerOf2(source_height)
+            else:
+                self.target_width = source_width
+                self.target_height = source_height
         else:
-            if self.context.request.width:
-                if self.context.request.width == "orig":
+            if reqWidth:
+                if reqWidth == "orig":
                     self.target_width = source_width
                 else:
-                    self.target_width = float(self.context.request.width)
+                    self.target_width = float(reqWidth)
             else:
                 self.target_width = self.engine.get_proportional_width(
-                    self.context.request.height
+                    reqHeight
                 )
 
-            if self.context.request.height:
-                if self.context.request.height == "orig":
+            if reqHeight:
+                if reqHeight == "orig":
                     self.target_height = source_height
                 else:
-                    self.target_height = float(self.context.request.height)
+                    self.target_height = float(reqHeight)
             else:
                 self.target_height = self.engine.get_proportional_height(
-                    self.context.request.width
+                    reqWidth
                 )
+
+            if self.context.request.power2:
+                self.target_width = closestPowerOf2(min(self.target_width, source_width))
+                self.target_height = closestPowerOf2(min(self.target_height, source_height))
 
     def get_target_dimensions(self):
         """

@@ -142,6 +142,7 @@ class RequestParameters:  # pylint: disable=too-few-public-methods,too-many-inst
         adaptive=False,
         full=False,
         fit_in=False,
+        power2=False,
         stretch=False,
         width=0,
         height=0,
@@ -192,6 +193,7 @@ class RequestParameters:  # pylint: disable=too-few-public-methods,too-many-inst
         self.adaptive = bool(adaptive)
         self.full = bool(full)
         self.fit_in = bool(fit_in)
+        self.power2 = bool(power2)
         self.stretch = bool(stretch)
 
         self.width = "orig" if width == "orig" else self.int_or_0(width)
