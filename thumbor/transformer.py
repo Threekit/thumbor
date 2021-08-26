@@ -34,19 +34,31 @@ class Transformer(object):
         self.target_width = None
 
     def _calculate_target_dimensions(self):
+
         source_width, source_height = self.engine.size
         source_width = float(source_width)
         source_height = float(source_height)
 
+        # has power of two, override (width)x(height)
+        if self.context.request.power2 != 0:
+            newW = 0
+            newH = 0
+            if source_width >= source_height:
+                newW = min(closestPowerOf2(source_width), self.context.request.power2)
+                newH = closestPowerOf2(newW * source_height / source_width)
+            else:
+                newH = min(closestPowerOf2(source_height), self.context.request.power2)
+                newW = closestPowerOf2(newH * source_width / source_height)
+            self.target_width = newW
+            self.target_height = newH
+            self.context.request.stretch = True # force the stretching
+            return
+
         reqWidth = self.context.request.width
         reqHeight = self.context.request.height
         if not reqWidth and not reqHeight:
-            if self.context.request.power2:
-                self.target_width = closestPowerOf2(source_width)
-                self.target_height = closestPowerOf2(source_height)
-            else:
-                self.target_width = source_width
-                self.target_height = source_height
+            self.target_width = source_width
+            self.target_height = source_height
         else:
             if reqWidth:
                 if reqWidth == "orig":
@@ -67,10 +79,6 @@ class Transformer(object):
                 self.target_height = self.engine.get_proportional_height(
                     reqWidth
                 )
-
-            if self.context.request.power2:
-                self.target_width = closestPowerOf2(min(self.target_width, source_width))
-                self.target_height = closestPowerOf2(min(self.target_height, source_height))
 
     def get_target_dimensions(self):
         """
