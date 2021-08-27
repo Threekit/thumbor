@@ -52,6 +52,7 @@ class Transformer(object):
             self.target_width = newW
             self.target_height = newH
             self.context.request.stretch = True # force the stretching
+            self.context.modules.optimizers=[]  # remove the optimizer
             return
 
         reqWidth = self.context.request.width
