@@ -40,6 +40,7 @@ class Transformer(object):
         source_height = float(source_height)
 
         # has power of two, override (width)x(height)
+        logger.debug("COMPUTE TARGET SIZE")
         if self.context.request.power2 != 0:
             newW = 0
             newH = 0
@@ -52,7 +53,7 @@ class Transformer(object):
             self.target_width = newW
             self.target_height = newH
             self.context.request.stretch = True # force the stretching
-            self.context.modules.optimizers=[]  # remove the optimizer
+            self.context.modules.optimizers=[]
             return
 
         reqWidth = self.context.request.width

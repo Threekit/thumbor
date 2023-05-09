@@ -490,6 +490,7 @@ class BaseHandler(tornado.web.RequestHandler):
         metrics.timing('result_storage.outgoing_time', (finish - start).total_seconds() * 1000)
 
     def optimize(self, context, image_extension, results):
+        logger.debug("OPTIMIZERS count %d", len(context.modules.optimizers))
         for optimizer in context.modules.optimizers:
             new_results = optimizer(context).run_optimizer(image_extension, results)
             if new_results is not None:
