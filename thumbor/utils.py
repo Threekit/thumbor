@@ -23,7 +23,10 @@ CONTENT_TYPE = {
     '.webm': 'video/webm',
     '.svg': 'image/svg+xml',
     '.tif': 'image/tiff',
-    '.tiff': 'image/tiff'
+    '.tiff': 'image/tiff',
+    '.pdf': 'application/pdf',
+    '.ai': 'application/pdf', # unused since it's indistinguishable from pdf
+    '.eps': 'application/postscript',
 }
 
 EXTENSION = {
@@ -34,7 +37,9 @@ EXTENSION = {
     'video/mp4': '.mp4',
     'video/webm': '.webm',
     'image/svg+xml': '.svg',
-    'image/tiff': '.tif'
+    'image/tiff': '.tif',
+    'application/pdf': '.pdf', # : '.ai'
+    'application/postscript': '.eps',
 }
 
 
