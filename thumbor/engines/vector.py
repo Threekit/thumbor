@@ -10,14 +10,11 @@
 
 from __future__ import absolute_import
 
-from io import BytesIO
-from PIL import Image
 import re
 from subprocess import Popen, PIPE
 from thumbor.engines.pil import Engine as PILEngine
 from thumbor.utils import EXTENSION, logger
 import os
-from os.path import exists, dirname, getmtime, splitext
 from tempfile import mkstemp
 
 INKSCAPE_SIZE_RE = re.compile(r'(-?[\d\.]+)')
@@ -53,19 +50,24 @@ class Engine(PILEngine):
 
             # execute inkscape on tmp file
 
-            popen = Popen(command, stdout=PIPE)
-            pipe = popen.stdout
-            svg_data = pipe.read()
-            pipe.close()
-            error_code = popen.wait()
-
-            if error_code != 0 or svg_data is None or self.get_mimetype(svg_data) != 'image/svg+xml':
-                errorMsg = 'Issue executing inkscape command. Inkscape command returned errorlevel {0} for command "{1}"'.format(popen.returncode, ' '.join(command));
+            p_inkscape = Popen(
+                command,
+                stdout=PIPE,
+                stderr=PIPE
+            )
+            stdout_data, stderr_data = p_inkscape.communicate(input=self.buffer)
+            # logger.warn(stderr_data)
+            # Note, stderr_data is full of "CRITICAL" inkscape warnings that don't mean much, so we can ignore them
+            # Most of them are caused by not running `dbus-run-session inkscape` instead of `inkscape`
+            # The returncode does seem to be reliable, and we can further validate by calling get_mimetype on the result
+            
+            if p_inkscape.returncode != 0 or not stdout_data or self.get_mimetype(stdout_data) != 'image/svg+xml':
+                errorMsg = 'Issue executing inkscape command. Inkscape command returned errorlevel {0} for command "{1}"'.format(p_inkscape.returncode, ' '.join(command));
                 logger.error(errorMsg)
                 self.image = None
                 return
 
-            self.buffer = svg_data
+            self.buffer = stdout_data
 
         finally:
             os.remove(tmp_file_path)
