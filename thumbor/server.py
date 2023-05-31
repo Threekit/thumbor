@@ -94,6 +94,14 @@ def validate_config(config, server_parameters):
                 'If using USE_GIFSICLE_ENGINE configuration to True, the `gifsicle` binary must be in the PATH '
                 'and must be an executable.'
             )
+    
+    if config.USE_VECTOR_ENGINE:
+        server_parameters.inkscape_path = which('inkscape')
+        if server_parameters.inkscape_path is None:
+            raise RuntimeError(
+                'If using USE_VECTOR_ENGINE configuration to True, the `inkscape` binary must be in the PATH '
+                'and must be an executable.'
+            )
 
 
 def get_context(server_parameters, config, importer):

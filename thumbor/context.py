@@ -71,7 +71,7 @@ class Context:
 
 
 class ServerParameters(object):
-    def __init__(self, port, ip, config_path, keyfile, log_level, app_class, debug=False, fd=None, gifsicle_path=None, use_environment=False):
+    def __init__(self, port, ip, config_path, keyfile, log_level, app_class, debug=False, fd=None, gifsicle_path=None, use_environment=False, inkscape_path=None):
         self.port = port
         self.ip = ip
         self.config_path = config_path
@@ -83,6 +83,7 @@ class ServerParameters(object):
         self.load_security_key()
         self.fd = fd
         self.gifsicle_path = gifsicle_path
+        self.inkscape_path = inkscape_path
         self.use_environment = use_environment
 
     @property
@@ -124,6 +125,7 @@ class RequestParameters:
                  full=False,
                  fit_in=False,
                  power2=0,
+                 vector=False,
                  stretch=False,
                  width=0,
                  height=0,
@@ -173,6 +175,7 @@ class RequestParameters:
         self.adaptive = bool(adaptive)
         self.full = bool(full)
         self.fit_in = bool(fit_in)
+        self.vector = bool(vector)
         self.power2 = self.int_or_0(power2)
         self.stretch = bool(stretch)
 
@@ -227,6 +230,9 @@ class ContextImporter:
         self.gif_engine = None
         if importer.gif_engine:
             self.gif_engine = importer.gif_engine(context)
+        self.vector_engine = None
+        if importer.vector_engine:
+            self.vector_engine = importer.vector_engine(context)
 
         self.storage = None
         if importer.storage:

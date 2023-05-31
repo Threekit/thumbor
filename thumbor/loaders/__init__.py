@@ -14,6 +14,8 @@ class LoaderResult(object):
     ERROR_NOT_FOUND = 'not_found'
     ERROR_UPSTREAM = 'upstream'
     ERROR_TIMEOUT = 'timeout'
+    INVALID_FILE_TYPE = 'invalid_file_type'
+    INVALID_FILE = 'invalid_file' # content of the file are invalid
 
     def __init__(self, buffer=None, successful=True, error=None, metadata=dict()):
         '''

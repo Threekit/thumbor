@@ -49,6 +49,16 @@ class FetchResult(object):
         self.successful = successful
         self.loader_error = loader_error
 
+def selectEngine(mime, context):
+    if context.request.vector:
+        if context.config.USE_VECTOR_ENGINE:
+            return context.modules.vector_engine
+        else: raise Exception('USE_VECTOR_ENGINE must be enabled to use the vector engine')
+    
+    if mime == 'image/gif' and context.config.USE_GIFSICLE_ENGINE:
+        return context.modules.gif_engine
+    
+    return context.modules.engine
 
 class BaseHandler(tornado.web.RequestHandler):
     url_locks = {}
@@ -329,6 +339,8 @@ class BaseHandler(tornado.web.RequestHandler):
             elif self.is_webp(context):
                 image_extension = '.webp'
                 logger.debug('Image format set by AUTO_WEBP as %s.' % image_extension)
+            elif context.request.vector:
+                image_extension = '.svg'
             elif self.can_auto_convert_png_to_jpg():
                 image_extension = '.jpg'
                 logger.debug('Image format set by AUTO_PNG_TO_JPG as %s.' % image_extension)
@@ -368,7 +380,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 context.request.max_bytes
             )
         if not context.request.meta:
-            results = self.optimize(context, image_extension, results)
+            if not context.request.vector: results = self.optimize(context, image_extension, results)
             # An optimizer might have modified the image format.
             content_type = BaseEngine.get_mimetype(results)
 
@@ -402,6 +414,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     @gen.coroutine
     def finish_request(self, result_from_storage=None):
+        
         if result_from_storage is not None:
             self._process_result_from_storage(result_from_storage)
 
@@ -426,6 +439,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 return
 
             results, content_type = future_result
+
             self._write_results_to_client(results, content_type)
 
             if should_store:
@@ -585,10 +599,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.context.metrics.incr('storage.hit')
                 mime = BaseEngine.get_mimetype(fetch_result.buffer)
                 self.context.request.extension = EXTENSION.get(mime, '.jpg')
-                if mime == 'image/gif' and self.context.config.USE_GIFSICLE_ENGINE:
-                    self.context.request.engine = self.context.modules.gif_engine
-                else:
-                    self.context.request.engine = self.context.modules.engine
+                self.context.request.engine = selectEngine(mime, self.context)
 
                 raise gen.Return(fetch_result)
             else:
@@ -620,12 +631,9 @@ class BaseHandler(tornado.web.RequestHandler):
             mime = BaseEngine.get_mimetype(fetch_result.buffer)
 
         self.context.request.extension = extension = EXTENSION.get(mime, '.jpg')
-
+    
         try:
-            if mime == 'image/gif' and self.context.config.USE_GIFSICLE_ENGINE:
-                self.context.request.engine = self.context.modules.gif_engine
-            else:
-                self.context.request.engine = self.context.modules.engine
+            self.context.request.engine = selectEngine(mime, self.context)
 
             self.context.request.engine.load(fetch_result.buffer, extension)
 
@@ -684,7 +692,6 @@ class BaseHandler(tornado.web.RequestHandler):
         except KeyError:
             pass
 
-
 class ContextHandler(BaseHandler):
     def initialize(self, context):
         self.context = Context(
@@ -720,10 +727,7 @@ class ImageApiHandler(ContextHandler):
         conf = self.context.config
         mime = BaseEngine.get_mimetype(body)
 
-        if mime == 'image/gif' and self.context.config.USE_GIFSICLE_ENGINE:
-            engine = self.context.modules.gif_engine
-        else:
-            engine = self.context.modules.engine
+        engine = selectEngine(mime, self.context)
 
         # Check if image is valid
         try:

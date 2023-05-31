@@ -105,6 +105,11 @@ Config.define(
     'supported for gifs using gifsicle (but won\'t give an error).', 'Imaging')
 
 Config.define(
+    'USE_VECTOR_ENGINE', True,
+    'Indicates whether thumbor should use vector engine. Please note that smart cropping and filters are not '
+    'supported for vector images using inksacpe (but won\'t give an error).', 'Imaging')
+
+Config.define(
     'USE_BLACKLIST', False,
     'Indicates whether thumbor should enable blacklist functionality to prevent processing certain images.', 'Imaging')
 
@@ -138,6 +143,11 @@ Config.define(
 Config.define(
     'GIF_ENGINE', 'thumbor.engines.gif',
     'The gif engine thumbor should use to perform image operations. This must be the full name of a ' +
+    'python module (python must be able to import it)', 'Extensibility')
+
+Config.define(
+    'VECTOR_ENGINE', 'thumbor.engines.vector',
+    'The vector engine thumbor should use to perform image operations. This must be the full name of a ' +
     'python module (python must be able to import it)', 'Extensibility')
 
 Config.define('SECURITY_KEY', 'MY_SECURE_KEY', 'The security key thumbor uses to sign image URLs', 'Security')

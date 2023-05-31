@@ -30,6 +30,7 @@ from thumbor.utils import logger, EXTENSION
 WEBP_SIDE_LIMIT = 16383
 
 SVG_RE = re.compile(r'<svg\s[^>]*([\"\'])http[^\"\']*svg[^\"\']*', re.I)
+EPS_RE = re.compile(r'%\!PS\-Adobe\-3\.\d+ ESPF-3\.0')
 
 
 class EngineResult(object):
@@ -116,8 +117,12 @@ class BaseEngine(object):
             return 'video/mp4'
         elif buffer.startswith('\x1aE\xdf\xa3'):
             return 'video/webm'
-        elif buffer.startswith('\x49\x49\x2A\x00') or buffer.startswith('\x4D\x4D\x00\x2A'):
+        elif buffer.startswith('\x49\x49\x2a\x00') or buffer.startswith('\x4d\x4d\x00\x2a'):
             return 'image/tiff'
+        elif buffer.startswith('%PDF-'): # .ai files have the same magic number
+            return 'application/pdf'
+        elif buffer.startswith('\xc5\xd0\xd3\xc6') or buffer.startswith('%!PS-Adobe-3.0 ESPF-3.0', 30) or buffer.startswith('%!PS-Adobe-3.1 ESPF-3.0', 30): # .eps
+            return 'application/postscript' # many equivalents: application/postscript, application/eps, application/x-eps, image/eps, image/x-eps
         elif SVG_RE.search(buffer[:2048].replace(b'\0', '')):
             return 'image/svg+xml'
 
